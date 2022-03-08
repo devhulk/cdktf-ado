@@ -22,14 +22,18 @@
   Destroy:
     cdktf destroy [stack] Destroy the stack
 
+  Test:
+    npm run test        Runs unit tests (edit __tests__/main-test.ts to add your own tests)
+    npm run test:watch  Watches the tests and reruns them on change
 
- Upgrades:
-   npm run upgrade        Upgrade cdktf modules to latest version
-   npm run upgrade:next   Upgrade cdktf modules to latest "@next" version (last commit)
+  Upgrades:
+    npm run upgrade        Upgrade cdktf modules to latest version
+    npm run upgrade:next   Upgrade cdktf modules to latest "@next" version (last commit)
 
  Use Prebuilt Providers:
 
-  You can add one or multiple of the prebuilt providers listed below:
+  You can find all prebuilt providers on npm: https://www.npmjs.com/search?q=keywords:cdktf
+  You can install these providers through npm:
 
   npm install @cdktf/provider-aws
   npm install @cdktf/provider-google
