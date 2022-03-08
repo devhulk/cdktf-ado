@@ -1,0 +1,63 @@
+import { Construct } from 'constructs';
+import { App, TerraformStack, TerraformOutput } from "cdktf";
+import {
+  AppService,
+  AppServicePlan,
+  AzurermProvider,
+  ResourceGroup,
+} from "./.gen/providers/azurerm";
+
+class MyStack extends TerraformStack {
+  constructor(scope: Construct, name: string) {
+    super(scope, name);
+
+     // define resources here
+    const imagename = "nginx:latest";
+
+    new AzurermProvider(this, "azureFeature", {
+      features: [
+        {}
+      ],
+    });
+
+    const rg = new ResourceGroup(this, "cdktf-rg", {
+      name: "cdktf-demo-rg",
+      location: "east-us",
+    });
+
+    const asp = new AppServicePlan(this, "cdktf-asp", {
+      kind: "Linux",
+      reserved: true,
+      resourceGroupName: rg.name,
+      location: rg.location,
+      name: "cdktf-demo-plan",
+      sku: [
+        { size: "S1", tier: "Standard" },
+      ]
+    });
+
+    const app = new AppService(this, "cdktf-app", {
+      name: "cdktf-demo-app",
+      location: rg.location,
+      appServicePlanId: asp.id,
+      resourceGroupName: rg.name,
+      clientAffinityEnabled: false,
+      httpsOnly: true,
+      siteConfig: [
+        {
+          linuxFxVersion: `DOCKER|${imagename}`,
+          use32BitWorkerProcess: true, // Required for free tier
+        },
+      ]    
+    });
+
+    new TerraformOutput(this, "cdktf-app-url", {
+      value: `https://${app.name}.azurewebsites.net/`,
+    });
+  }
+
+}
+
+const app = new App();
+new MyStack(app, 'ado');
+app.synth();
