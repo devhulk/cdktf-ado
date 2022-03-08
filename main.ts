@@ -1,6 +1,10 @@
 import * as cdktf from "cdktf";
 import { Construct } from "constructs";
-import { BaseStack, Stack } from "cdktf-multi-stack-tfe";
+import { BaseStack, Stack, WorkspaceConfig } from "cdktf-multi-stack-tfe";
+
+const workspaceConfig: WorkspaceConfig = {
+  executionMode: "remote"
+}
 
 // We need to have an already created "base" TFE workspace as a basis.
 // It will store the TFE workspace configuration and state for all stacks.
@@ -25,8 +29,8 @@ class Networking extends Stack {
 
   // This stack will depend on the base stack and it
   // will use the my-company/my-app-$stackName workspace as a backend
-  constructor(scope: Construct, stackName: string) {
-    super(scope, stackName);
+  constructor(scope: Construct, stackName: string, config: WorkspaceConfig) {
+    super(scope, stackName, config);
 
     // Setup a VNET, pass VNET ID to App Service etc.
     // let vnetId = ...
@@ -35,8 +39,8 @@ class Networking extends Stack {
 }
 
 class AppService extends Stack {
-  constructor(scope: Construct, stackName: string, vnetId: string) {
-    super(scope, stackName);
+  constructor(scope: Construct, stackName: string, vnetId: string, config: WorkspaceConfig) {
+    super(scope, stackName, config);
 
     // Setup yourwebapp using the vpcId
   }
@@ -47,11 +51,11 @@ new MyAppBaseStack(app); // the stack name is "base"
 
 // This cross-stack reference will lead to permissions being set up so that
 // the staging-web workspace can access the staging-vpc workspace.
-const devVpc = new Networking(app, "staging-vpc"); // the stack name is "staging-vpc"
+const devVpc = new Networking(app, "staging-vpc", workspaceConfig); // the stack name is "staging-vpc"
 new AppService(app, "dev-web", devVpc.vpcId); // the stack name is "staging-web"
 
-const vpc = new Networking(app, "staging-vpc"); // the stack name is "staging-vpc"
-new AppService(app, "staging-web", vpc.vpcId); // the stack name is "staging-web"
+const stagingVpc = new Networking(app, "staging-vpc", workspaceConfig); // the stack name is "staging-vpc"
+new AppService(app, "staging-web", stagingVpc.vpcId); // the stack name is "staging-web"
 
 const prodVpc = new Networking(app, "production-vpc");
 new AppService(app, "production-web", prodVpc.vpcId);
